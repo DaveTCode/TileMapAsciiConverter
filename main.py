@@ -78,6 +78,7 @@ while True:
                         output_tile = ui_renderer.get_output_tile_at(screen_x, screen_y)
 
                         if output_tile:
+                            ui_renderer.toggle_highlighted_output_tile(output_tile, True, remove_if_exists=False)
                             for id in ui_renderer.get_highlighted_ids():
                                 cProject.set_output_tile(id, output_tile)
 

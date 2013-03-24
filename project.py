@@ -1,3 +1,4 @@
+import collections
 import glob
 import pygame
 import os
@@ -13,6 +14,7 @@ class Project():
         self.id_map = id_map
         self.output_tiles = output_tiles
         self.id_to_output_tile_mapping = id_to_output_tile_mapping
+        self.id_counts = collections.Counter([item for sublist in self.id_map for item in sublist])
 
     def get_image_by_id(self, id):
         return self.id_image_mapping[id]
@@ -50,6 +52,25 @@ class Project():
             unknown += reduce(lambda x, y: x + 1 if not y in self.id_to_output_tile_mapping else x, row, 0)
 
         return unknown
+
+    def get_most_unknown_id(self):
+        '''
+            Retrieve the id of the tile which has the most instances but is also unknown.
+        '''
+        for id in self.id_counts:
+            if not id in self.id_to_output_tile_mapping:
+                return id
+
+    def get_first_instance_of(self, id):
+        '''
+            Find the first place that a given id appears.
+        '''
+        for y in range(0, len(self.id_map)):
+            for x in range(0, len(self.id_map[y])):
+                if self.id_map[y][x] == id:
+                    return x,y
+
+        return None
 
 def save(project_dir, project):
     def _save_output_tiles():

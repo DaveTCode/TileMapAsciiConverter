@@ -48,14 +48,21 @@ while True:
                         x_vel = 0
                     elif event.key == K_UP or event.key == K_DOWN:
                         y_vel = 0
-                    elif event.key == K_m:
-                        view_mode = renderer.MAP_VIEW
-                    elif event.key == K_i:
-                        view_mode = renderer.ID_VIEW
                     elif event.key == K_c:
                         view_mode = renderer.CHAR_VIEW
+                    elif event.key == K_i:
+                        view_mode = renderer.ID_VIEW
+                    elif event.key == K_m:
+                        view_mode = renderer.MAP_VIEW
                     elif event.key == K_n:
                         viewing_output_tile_form = True
+                    elif event.key == K_r:
+                        ui_renderer.highlight_unknown = (not ui_renderer.highlight_unknown)
+                    elif event.key == K_u:
+                        id_to_view = cProject.get_most_unknown_id()
+                        ui_renderer.toggle_highlighted_id(id_to_view, False, remove_if_exists=False)
+                        coords = cProject.get_first_instance_of(id_to_view)
+                        ui_renderer.centre_display_on(coords[0], coords[1])
                     elif event.key == K_PAGEUP:
                         ui_renderer.output_tile_page_adj(-1)
                     elif event.key == K_PAGEDOWN:
@@ -82,7 +89,7 @@ while True:
                             for id in ui_renderer.get_highlighted_ids():
                                 cProject.set_output_tile(id, output_tile)
 
-    ui_renderer.shift_display(x_vel, y_vel)
+    ui_renderer.shift_display(x_vel * (5 if shift_down else 1), y_vel * (5 if shift_down else 1))
 
     game_surface.fill((0,0,0,0))
     ui_renderer.render(view_mode)

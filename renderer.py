@@ -24,8 +24,13 @@ class Renderer():
         self.highlighted_ids = []
         self.highlighted_output_tiles = []
         self.project = project
-        self.highlighter = pygame.Surface((project.tile_width, project.tile_height), flags=pygame.SRCALPHA)
-        self.highlighter.fill((200,0,0,100))
+        
+        self.selected_highlight = pygame.Surface((project.tile_width, project.tile_height), flags=pygame.SRCALPHA)
+        self.selected_highlight.fill((200,0,0,100))
+
+        self.known_highlight = pygame.Surface((project.tile_width, project.tile_height), flags=pygame.SRCALPHA)
+        self.known_highlight.fill((80,80,80,100))
+
         self.output_tile_highlighter = pygame.Surface((OUTPUT_TILE_AREA_DIMENSIONS[0], OUTPUT_TILE_AREA_ROW_HEIGHT), flags=pygame.SRCALPHA)
         self.output_tile_highlighter.fill((200,0,0,100))
 
@@ -37,16 +42,13 @@ class Renderer():
         self.selected_row = -1
         self.leftmost_tile = 0
         self.topmost_tile = 0
+        self.highlight_unknown = False
 
     def get_num_tiles_x(self):
         return self.game_surface.get_width() // self.project.tile_width
 
     def get_num_tiles_y(self):
         return self.game_surface.get_height() // self.project.tile_height
-
-    def shift_display(self, amount_x, amount_y):
-        self.leftmost_tile = min(max(0, self.leftmost_tile + amount_x), len(self.project.id_map[0]) - self.get_num_tiles_x())
-        self.topmost_tile = min(max(0, self.topmost_tile + amount_y), len(self.project.id_map) - self.get_num_tiles_y())
 
     def get_highlighted_ids(self):
         ids = []
@@ -57,6 +59,39 @@ class Renderer():
 
     def num_output_tile_pages(self):
         return len(self.project.output_tiles) // self.num_output_tile_rows
+
+    def get_output_tile_at(self, screen_x, screen_y):
+        if (screen_x > self.output_area_left() and screen_x < self.output_area_left() + OUTPUT_TILE_AREA_DIMENSIONS[0] and 
+            screen_y > self.output_area_top() and screen_y < self.output_area_top() + OUTPUT_TILE_AREA_DIMENSIONS[1]):
+            row = (screen_y - self.output_area_top()) // OUTPUT_TILE_AREA_ROW_HEIGHT + self.output_tile_page * self.num_output_tile_rows - 1
+
+            if row < len(self.project.output_tiles):
+                return self.project.output_tiles.values()[row]
+
+        return None
+
+    def get_tile_at(self, screen_x, screen_y):
+        x = self.leftmost_tile + screen_x // self.project.tile_width
+        y = self.topmost_tile + screen_y // self.project.tile_height
+
+        if y < len(self.project.id_map) and x < len(self.project.id_map[y]):
+            return self.project.id_map[y][x]
+        else:
+            return None
+
+    def output_area_left(self):
+        return self.game_surface.get_width() - self.tile_surface.get_width() - OUTPUT_TILE_AREA_MARGIN_RIGHT
+
+    def output_area_top(self):
+        return self.game_surface.get_height() - self.tile_surface.get_height() - OUTPUT_TILE_AREA_MARGIN_BOTTOM
+
+    def centre_display_on(self, x, y):
+        self.leftmost_tile = min(max(0, x - self.get_num_tiles_x() // 2), len(self.project.id_map[0]) - self.get_num_tiles_x())
+        self.topmost_tile = min(max(0, y - self.get_num_tiles_y() // 2), len(self.project.id_map) - self.get_num_tiles_y())
+
+    def shift_display(self, amount_x, amount_y):
+        self.leftmost_tile = min(max(0, self.leftmost_tile + amount_x), len(self.project.id_map[0]) - self.get_num_tiles_x())
+        self.topmost_tile = min(max(0, self.topmost_tile + amount_y), len(self.project.id_map) - self.get_num_tiles_y())
 
     def output_tile_page_adj(self, amount):
         self.output_tile_page = min(max(0, amount + self.output_tile_page), len(self.project.output_tiles) // self.num_output_tile_rows)
@@ -96,11 +131,7 @@ class Renderer():
 
         for col in range(self.leftmost_tile, self.leftmost_tile + num_tiles_x):
             for row in range(self.topmost_tile, self.topmost_tile + num_tiles_y):
-                try:
-                    id = self.project.id_map[row][col]
-                except Exception:
-                    print self.topmost_tile, num_tiles_y, row
-                    sys.exit(0)
+                id = self.project.id_map[row][col]
                 x, y = (col - self.leftmost_tile) * self.project.tile_width, (row - self.topmost_tile) * self.project.tile_height
 
                 if view_mode == MAP_VIEW:
@@ -117,32 +148,10 @@ class Renderer():
                     self.game_surface.blit(self.font.render(char, 1, color), (x, y))
 
                 if id in highlighted_ids:
-                    self.game_surface.blit(self.highlighter, (x,y))
+                    self.game_surface.blit(self.selected_highlight, (x, y))
 
-    def get_output_tile_at(self, screen_x, screen_y):
-        if (screen_x > self.output_area_left() and screen_x < self.output_area_left() + OUTPUT_TILE_AREA_DIMENSIONS[0] and 
-            screen_y > self.output_area_top() and screen_y < self.output_area_top() + OUTPUT_TILE_AREA_DIMENSIONS[1]):
-            row = (screen_y - self.output_area_top()) // OUTPUT_TILE_AREA_ROW_HEIGHT + self.output_tile_page * self.num_output_tile_rows - 1
-
-            if row < len(self.project.output_tiles):
-                return self.project.output_tiles.values()[row]
-
-        return None
-
-    def get_tile_at(self, screen_x, screen_y):
-        x = self.leftmost_tile + screen_x // self.project.tile_width
-        y = self.topmost_tile + screen_y // self.project.tile_height
-
-        if y < len(self.project.id_map) and x < len(self.project.id_map[y]):
-            return self.project.id_map[y][x]
-        else:
-            return None
-
-    def output_area_left(self):
-        return self.game_surface.get_width() - self.tile_surface.get_width() - OUTPUT_TILE_AREA_MARGIN_RIGHT
-
-    def output_area_top(self):
-        return self.game_surface.get_height() - self.tile_surface.get_height() - OUTPUT_TILE_AREA_MARGIN_BOTTOM
+                if self.highlight_unknown and self.project.get_tile_by_id(id):
+                    self.game_surface.blit(self.known_highlight, (x, y))
 
     def render_output_tile_area(self):
         self.tile_surface.fill((250,250,250))

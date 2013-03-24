@@ -12,6 +12,11 @@ OUTPUT_TILE_AREA_PADDING_LEFT = 5
 OUTPUT_TILE_AREA_PADDING_TOP = 15
 OUTPUT_TILE_AREA_ROW_HEIGHT = 15
 
+STATUS_AREA_MARGIN_LEFT = 10
+STATUS_AREA_MARGIN_RIGHT = 10
+STATUS_AREA_MARGIN_TOP = 10
+STATUS_AREA_HEIGHT = 20
+
 class Renderer():
     def __init__(self, game_surface, font, project):
         self.game_surface = game_surface
@@ -24,7 +29,8 @@ class Renderer():
         self.output_tile_highlighter = pygame.Surface((OUTPUT_TILE_AREA_DIMENSIONS[0], OUTPUT_TILE_AREA_ROW_HEIGHT), flags=pygame.SRCALPHA)
         self.output_tile_highlighter.fill((200,0,0,100))
 
-        # This corresponds to the fixed position output tile area
+        self.status_area_surface = pygame.Surface((game_surface.get_width() - STATUS_AREA_MARGIN_RIGHT - STATUS_AREA_MARGIN_LEFT, STATUS_AREA_HEIGHT), flags=pygame.SRCALPHA)
+
         self.tile_surface = pygame.Surface(OUTPUT_TILE_AREA_DIMENSIONS, flags=pygame.SRCALPHA)
         self.num_output_tile_rows = (OUTPUT_TILE_AREA_DIMENSIONS[1] - OUTPUT_TILE_AREA_PADDING_TOP) // OUTPUT_TILE_AREA_ROW_HEIGHT
         self.output_tile_page = 0
@@ -83,7 +89,7 @@ class Renderer():
                 self.highlighted_ids = []
                 self.highlighted_output_tiles = [output_tile]
 
-    def render(self, surface, view_mode):
+    def render(self, view_mode):
         num_tiles_x = self.get_num_tiles_x()
         num_tiles_y = self.get_num_tiles_y()
         highlighted_ids = self.get_highlighted_ids()
@@ -116,7 +122,7 @@ class Renderer():
     def get_output_tile_at(self, screen_x, screen_y):
         if (screen_x > self.output_area_left() and screen_x < self.output_area_left() + OUTPUT_TILE_AREA_DIMENSIONS[0] and 
             screen_y > self.output_area_top() and screen_y < self.output_area_top() + OUTPUT_TILE_AREA_DIMENSIONS[1]):
-            row = (screen_y - self.output_area_top()) // OUTPUT_TILE_AREA_ROW_HEIGHT + self.output_tile_page * self.num_output_tile_rows
+            row = (screen_y - self.output_area_top()) // OUTPUT_TILE_AREA_ROW_HEIGHT + self.output_tile_page * self.num_output_tile_rows - 1
 
             if row < len(self.project.output_tiles):
                 return self.project.output_tiles.values()[row]
@@ -138,24 +144,23 @@ class Renderer():
     def output_area_top(self):
         return self.game_surface.get_height() - self.tile_surface.get_height() - OUTPUT_TILE_AREA_MARGIN_BOTTOM
 
-    def render_output_tile_area(self, surface):
-        self.tile_surface.fill((255,255,255,255))
-        pygame.draw.rect(self.tile_surface, (0, 0, 0), (0, 0, self.tile_surface.get_width() - 1, self.tile_surface.get_height() - 1), 1)
+    def render_output_tile_area(self):
+        self.tile_surface.fill((250,250,250))
+        pygame.draw.rect(self.tile_surface, (50, 50, 50), (0, 0, self.tile_surface.get_width() - 1, self.tile_surface.get_height() - 1), 2)
 
         self.tile_surface.blit(self.font.render("(" + str(self.output_tile_page + 1) + "/" + str(self.num_output_tile_pages() + 1) + ")", 1, (0, 0 ,0)), (OUTPUT_TILE_AREA_DIMENSIONS[0] - 50, 0))
 
         count = 0
         page_count = 0
         for output_tile in self.project.output_tiles.values():
-            if count > self.output_tile_page * self.num_output_tile_rows and count < (self.output_tile_page + 1) * self.num_output_tile_rows:
-                if output_tile.r + output_tile.g + output_tile.b > 600:
-                    background_color = (50,50,50)
-                else:
-                    background_color = (250,250,250)
+            if count >= self.output_tile_page * self.num_output_tile_rows and count < (self.output_tile_page + 1) * self.num_output_tile_rows:
+                x = OUTPUT_TILE_AREA_PADDING_LEFT
+                y = OUTPUT_TILE_AREA_PADDING_TOP + page_count * OUTPUT_TILE_AREA_ROW_HEIGHT
 
-                pygame.draw.rect(self.tile_surface, background_color, (0, OUTPUT_TILE_AREA_PADDING_TOP + page_count * OUTPUT_TILE_AREA_ROW_HEIGHT, self.tile_surface.get_width(), OUTPUT_TILE_AREA_PADDING_TOP + (page_count + 1) * OUTPUT_TILE_AREA_ROW_HEIGHT))
-                self.tile_surface.blit(self.font.render(output_tile.identifier + " - " + output_tile.char, 1, output_tile.color), 
-                                       (OUTPUT_TILE_AREA_PADDING_LEFT, OUTPUT_TILE_AREA_PADDING_TOP + page_count * OUTPUT_TILE_AREA_ROW_HEIGHT))
+                if output_tile.r + output_tile.g + output_tile.b > 382.5:
+                    pygame.draw.rect(self.tile_surface, (50, 50, 50), (0, y, self.tile_surface.get_width(), OUTPUT_TILE_AREA_ROW_HEIGHT))
+
+                self.tile_surface.blit(self.font.render(output_tile.identifier + " - " + output_tile.char, 1, output_tile.color), (x, y))
 
                 if output_tile in self.highlighted_output_tiles:
                     self.tile_surface.blit(self.output_tile_highlighter, (0, OUTPUT_TILE_AREA_PADDING_TOP + page_count * OUTPUT_TILE_AREA_ROW_HEIGHT))
@@ -164,3 +169,12 @@ class Renderer():
             count += 1
 
         self.game_surface.blit(self.tile_surface, (self.output_area_left(), self.output_area_top()))
+
+    def render_status_bar(self):
+        self.status_area_surface.fill((250,250,250,100))
+
+        status_string = "Unknown: {0} ({1} ids)".format(self.project.unknown_tile_count(), self.project.unknown_id_count())
+        status_string_surface = self.font.render(status_string, 1, (50, 50, 50))
+        self.status_area_surface.blit(status_string_surface, (0, 0))
+
+        self.game_surface.blit(self.status_area_surface, (STATUS_AREA_MARGIN_LEFT, STATUS_AREA_MARGIN_TOP))

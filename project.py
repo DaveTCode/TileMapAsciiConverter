@@ -35,6 +35,22 @@ class Project():
 
         return ids
 
+    def unknown_id_count(self):
+        '''
+            Corresponds to the number of ids which don't have a related output tile.
+        '''
+        return reduce(lambda x, y: x + 1 if not y in self.id_to_output_tile_mapping else x, self.id_image_mapping.keys(), 0)
+
+    def unknown_tile_count(self):
+        '''
+            Corresponds to the number of tiles which have ids that are unknown.
+        '''
+        unknown = 0
+        for row in self.id_map:
+            unknown += reduce(lambda x, y: x + 1 if not y in self.id_to_output_tile_mapping else x, row, 0)
+
+        return unknown
+
 def save(project_dir, project):
     def _save_output_tiles():
         with open(os.path.join(project_dir, "output_tiles.txt"), "w") as output_tiles_file:

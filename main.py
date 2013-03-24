@@ -85,8 +85,9 @@ while True:
     ui_renderer.shift_display(x_vel, y_vel)
 
     game_surface.fill((0,0,0,0))
-    ui_renderer.render(game_surface, view_mode)
-    ui_renderer.render_output_tile_area(game_surface)
+    ui_renderer.render(view_mode)
+    ui_renderer.render_output_tile_area()
+    ui_renderer.render_status_bar()
 
     if viewing_output_tile_form:
         output_tile_form.render()

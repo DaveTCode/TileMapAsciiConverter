@@ -116,9 +116,10 @@ def load(project_dir):
 
     def _load_image_tiles():
         image_tiles = {}
-        for tile_file in os.listdir(project_dir):
+        tiles_dir = os.path.join(project_dir, 'tiles')
+        for tile_file in os.listdir(tiles_dir):
             if tile_file.endswith(".png"):
-                image_tiles[int(tile_file.replace(".png", ""))] = pygame.image.load(os.path.join(project_dir, tile_file))
+                image_tiles[int(tile_file.replace(".png", ""))] = pygame.image.load(os.path.join(tiles_dir, tile_file))
 
         return image_tiles
 

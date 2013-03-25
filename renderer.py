@@ -71,19 +71,28 @@ class Renderer():
         return None
 
     def get_tile_at(self, screen_x, screen_y):
-        x = self.leftmost_tile + screen_x // self.project.tile_width
-        y = self.topmost_tile + screen_y // self.project.tile_height
+        x,y = self.screen_to_map_coords(screen_x, screen_y)
 
         if y < len(self.project.id_map) and x < len(self.project.id_map[y]):
             return self.project.id_map[y][x]
         else:
             return None
 
+    def screen_to_map_coords(self, screen_x, screen_y):
+        x = self.leftmost_tile + screen_x // self.project.tile_width
+        y = self.topmost_tile + screen_y // self.project.tile_height
+
+        return x,y
+
     def output_area_left(self):
         return self.game_surface.get_width() - self.tile_surface.get_width() - OUTPUT_TILE_AREA_MARGIN_RIGHT
 
     def output_area_top(self):
         return self.game_surface.get_height() - self.tile_surface.get_height() - OUTPUT_TILE_AREA_MARGIN_BOTTOM
+
+    def clear_highlighted_ids(self):
+        self.highlighted_ids = []
+        self.highlighted_output_tiles = []
 
     def centre_display_on(self, x, y):
         self.leftmost_tile = min(max(0, x - self.get_num_tiles_x() // 2), len(self.project.id_map[0]) - self.get_num_tiles_x())

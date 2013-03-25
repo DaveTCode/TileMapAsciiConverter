@@ -20,6 +20,8 @@ x_vel = y_vel = 0
 shift_down = False
 output_tile_form = OutputTileForm(cProject, game_surface, pygame.font.SysFont('consolas', 14))
 viewing_output_tile_form = False
+selection_start_x = -1
+selection_start_y = -1
 
 while True:
     for event in pygame.event.get():
@@ -69,6 +71,20 @@ while True:
                         ui_renderer.output_tile_page_adj(1)
                     elif event.key == K_RSHIFT or event.key == K_LSHIFT:
                         shift_down = False
+                elif event.type == MOUSEBUTTONUP:
+                    screen_x, screen_y = pygame.mouse.get_pos()
+                    if selection_start_x != -1 and selection_start_y != -1:
+                        map_x, map_y = ui_renderer.screen_to_map_coords(screen_x, screen_y)
+                        map_start_x, map_start_y = ui_renderer.screen_to_map_coords(selection_start_x, selection_start_y)
+                        selection_start_x = selection_start_y = -1
+
+                        if not shift_down:
+                            ui_renderer.clear_highlighted_ids()
+
+                        for x in range(min(map_start_x, map_x), max(map_start_x, map_x) + 1):
+                            for y in range(min(map_start_y, map_y), max(map_start_y, map_y) + 1):
+                                ui_renderer.toggle_highlighted_id(cProject.id_map[y][x], True, remove_if_exists=False)
+                        
                 elif event.type == MOUSEBUTTONDOWN:
                     screen_x, screen_y = pygame.mouse.get_pos()
                     if pygame.mouse.get_pressed()[0]:
@@ -77,10 +93,7 @@ while True:
                         if output_tile:
                             ui_renderer.toggle_highlighted_output_tile(output_tile, shift_down)
                         else:
-                            id = ui_renderer.get_tile_at(screen_x, screen_y)
-
-                            if id:
-                                ui_renderer.toggle_highlighted_id(id, shift_down)
+                            selection_start_x, selection_start_y = screen_x, screen_y
                     elif pygame.mouse.get_pressed()[2]:
                         output_tile = ui_renderer.get_output_tile_at(screen_x, screen_y)
 

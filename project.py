@@ -16,6 +16,12 @@ class Project():
         self.id_to_output_tile_mapping = id_to_output_tile_mapping
         self.id_counts = collections.Counter([item for sublist in self.id_map for item in sublist])
 
+    def get_id_at(self, x, y):
+        if len(self.id_map) > 0 and y >=0 and y < len(self.id_map) and x >= 0 and x < len(self.id_map[0]):
+            return self.id_map[y][x]
+        else:
+            return None
+
     def get_image_by_id(self, id):
         return self.id_image_mapping[id]
 

@@ -26,5 +26,25 @@ if __name__ == "__main__":
             creator = extract_tiles.ProjectCreator(args.imagefile, args.project_directory, args.tilewidth, args.tileheight)
             creator.create()
     elif args.type == "edit":
+        print("Selecting Tiles:")
+        print("Left click => Select/Deselect tile")
+        print("Shift + Left click => Select/Deselect tile keeping current selection")
+        print("")
+        print("Output Tiles:")
+        print("n => Add a new output tile")
+        print("Right click => Converts the selected tiles into the output tile clicked on")
+        print("")
+        print("Viewing modes:")
+        print("m => Map view")
+        print("c => Character view")
+        print("i => Id view")
+        print("")
+        print("Functions")
+        print("r => Grey out known tiles")
+        print("u => Find unknown tile")
+        print("")
+        
+
+
         ui = tile_to_ascii_map_ui.TileToAsciiMapUI(args.project_directory)
         ui.run()

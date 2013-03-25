@@ -73,10 +73,7 @@ class Renderer():
     def get_tile_at(self, screen_x, screen_y):
         x,y = self.screen_to_map_coords(screen_x, screen_y)
 
-        if y < len(self.project.id_map) and x < len(self.project.id_map[y]):
-            return self.project.id_map[y][x]
-        else:
-            return None
+        return self.project.get_id_at(x, y)
 
     def screen_to_map_coords(self, screen_x, screen_y):
         x = self.leftmost_tile + screen_x // self.project.tile_width
@@ -95,12 +92,13 @@ class Renderer():
         self.highlighted_output_tiles = []
 
     def centre_display_on(self, x, y):
-        self.leftmost_tile = min(max(0, x - self.get_num_tiles_x() // 2), len(self.project.id_map[0]) - self.get_num_tiles_x())
-        self.topmost_tile = min(max(0, y - self.get_num_tiles_y() // 2), len(self.project.id_map) - self.get_num_tiles_y())
+        if len(self.project.id_map) > 0:
+            self.leftmost_tile = x - self.get_num_tiles_x() // 2
+            self.topmost_tile = y - self.get_num_tiles_y() // 2
 
     def shift_display(self, amount_x, amount_y):
-        self.leftmost_tile = min(max(0, self.leftmost_tile + amount_x), len(self.project.id_map[0]) - self.get_num_tiles_x())
-        self.topmost_tile = min(max(0, self.topmost_tile + amount_y), len(self.project.id_map) - self.get_num_tiles_y())
+        self.leftmost_tile += amount_x
+        self.topmost_tile += amount_y
 
     def output_tile_page_adj(self, amount):
         self.output_tile_page = min(max(0, amount + self.output_tile_page), len(self.project.output_tiles) // self.num_output_tile_rows)
@@ -140,27 +138,29 @@ class Renderer():
 
         for col in range(self.leftmost_tile, self.leftmost_tile + num_tiles_x):
             for row in range(self.topmost_tile, self.topmost_tile + num_tiles_y):
-                id = self.project.id_map[row][col]
-                x, y = (col - self.leftmost_tile) * self.project.tile_width, (row - self.topmost_tile) * self.project.tile_height
+                id = self.project.get_id_at(col, row)
 
-                if view_mode == MAP_VIEW:
-                    output_image = self.project.get_image_by_id(id)
-                    
-                    self.game_surface.blit(output_image, (x, y))
-                elif view_mode == ID_VIEW:
-                    self.game_surface.blit(self.font.render(str(id), 1, (255, 255, 255, 0)), (x, y))
-                elif view_mode == CHAR_VIEW:
-                    output_tile = self.project.get_tile_by_id(id)
-                    char = output_tile.char if output_tile else "?"
-                    color = output_tile.color if output_tile else pygame.Color(255, 255, 255, 0)
+                if id != None:
+                    x, y = (col - self.leftmost_tile) * self.project.tile_width, (row - self.topmost_tile) * self.project.tile_height
 
-                    self.game_surface.blit(self.font.render(char, 1, color), (x, y))
+                    if view_mode == MAP_VIEW:
+                        output_image = self.project.get_image_by_id(id)
+                        
+                        self.game_surface.blit(output_image, (x, y))
+                    elif view_mode == ID_VIEW:
+                        self.game_surface.blit(self.font.render(str(id), 1, (255, 255, 255, 0)), (x, y))
+                    elif view_mode == CHAR_VIEW:
+                        output_tile = self.project.get_tile_by_id(id)
+                        char = output_tile.char if output_tile else "?"
+                        color = output_tile.color if output_tile else pygame.Color(255, 255, 255, 0)
 
-                if id in highlighted_ids:
-                    self.game_surface.blit(self.selected_highlight, (x, y))
+                        self.game_surface.blit(self.font.render(char, 1, color), (x, y))
 
-                if self.highlight_unknown and self.project.get_tile_by_id(id):
-                    self.game_surface.blit(self.known_highlight, (x, y))
+                    if id in highlighted_ids:
+                        self.game_surface.blit(self.selected_highlight, (x, y))
+
+                    if self.highlight_unknown and self.project.get_tile_by_id(id):
+                        self.game_surface.blit(self.known_highlight, (x, y))
 
     def render_output_tile_area(self):
         self.tile_surface.fill((250,250,250))

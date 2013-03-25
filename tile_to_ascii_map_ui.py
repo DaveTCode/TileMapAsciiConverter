@@ -3,7 +3,7 @@ from pygame.locals import *
 import project
 import renderer
 import sys
-from outputtileform import OutputTileForm
+from output_tile_form import OutputTileForm
 
 WIDTH = 1024
 HEIGHT = 768
@@ -12,6 +12,7 @@ FPS = 30
 class TileToAsciiMapUI():
     def __init__(self, project_dir):
         pygame.init()
+        pygame.display.set_caption("Tile to Ascii Converter")
 
         self.project_dir = project_dir
         self.surface = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -86,7 +87,10 @@ class TileToAsciiMapUI():
 
                         for x in range(min(map_start_x, map_x), max(map_start_x, map_x) + 1):
                             for y in range(min(map_start_y, map_y), max(map_start_y, map_y) + 1):
-                                self.ui_renderer.toggle_highlighted_id(self.project.id_map[y][x], True, remove_if_exists=(map_start_x == map_x and map_start_y == map_y and shift_down))
+                                id = self.project.get_id_at(x, y)
+
+                                if id != None:
+                                    self.ui_renderer.toggle_highlighted_id(self.project.get_id_at(x, y), True, remove_if_exists=(map_start_x == map_x and map_start_y == map_y and shift_down))
                         
                 elif event.type == MOUSEBUTTONDOWN:
                     screen_x, screen_y = pygame.mouse.get_pos()
@@ -113,6 +117,13 @@ class TileToAsciiMapUI():
         self.project = project.load(self.project_dir)
         self.ui_renderer = renderer.Renderer(self.surface, pygame.font.SysFont('consolas', 12), self.project)
         self.output_tile_form = OutputTileForm(self.project, self.surface, pygame.font.SysFont('consolas', 14))
+
+        # If the project is smaller than the screen then centre the display on
+        # the central tile so that the project is displayed in the middle of 
+        # the screen.
+        y = len(self.project.id_map) // 2 if len(self.project.id_map) < self.ui_renderer.get_num_tiles_y() else self.ui_renderer.get_num_tiles_y() // 2
+        x = len(self.project.id_map[0]) // 2 if len(self.project.id_map[0]) < self.ui_renderer.get_num_tiles_x() else self.ui_renderer.get_num_tiles_x() // 2
+        self.ui_renderer.centre_display_on(x, y)
 
         while True:
             for event in pygame.event.get():

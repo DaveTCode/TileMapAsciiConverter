@@ -61,6 +61,8 @@ class Project():
             if not id in self.id_to_output_tile_mapping:
                 return id
 
+        return None
+
     def get_first_instance_of(self, id):
         '''
             Find the first place that a given id appears.

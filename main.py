@@ -62,9 +62,11 @@ while True:
                         ui_renderer.highlight_unknown = (not ui_renderer.highlight_unknown)
                     elif event.key == K_u:
                         id_to_view = cProject.get_most_unknown_id()
-                        ui_renderer.toggle_highlighted_id(id_to_view, False, remove_if_exists=False)
-                        coords = cProject.get_first_instance_of(id_to_view)
-                        ui_renderer.centre_display_on(coords[0], coords[1])
+
+                        if id_to_view != None:
+                            ui_renderer.toggle_highlighted_id(id_to_view, False, remove_if_exists=False)
+                            coords = cProject.get_first_instance_of(id_to_view)
+                            ui_renderer.centre_display_on(coords[0], coords[1])
                     elif event.key == K_PAGEUP:
                         ui_renderer.output_tile_page_adj(-1)
                     elif event.key == K_PAGEDOWN:

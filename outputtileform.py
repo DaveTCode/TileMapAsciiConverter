@@ -24,14 +24,17 @@ COLOR_TEXT_BOX_WIDTH = 200
 COLOR_TEXT_BOX_HEIGHT = 15
 COLOR_TEXT_BOX_DIMENSIONS = (COLOR_TEXT_BOX_WIDTH, COLOR_TEXT_BOX_HEIGHT)
 
-OUTPUT_TILE_FORM_WIDTH = 250
-OUTPUT_TILE_FORM_HEIGHT = 65
-OUTPUT_TILE_FORM_PADDING_TOP = 5
-OUTPUT_TILE_FORM_PADDING_BOTTOM = 5
+OUTPUT_TILE_FORM_WIDTH = 375
+OUTPUT_TILE_FORM_HEIGHT = 105
+OUTPUT_TILE_FORM_PADDING_TOP = 25
+OUTPUT_TILE_FORM_PADDING_BOTTOM = 25
 OUTPUT_TILE_FORM_PADDING_LEFT = 25
 OUTPUT_TILE_FORM_PADDING_RIGHT = 25
 
 TEXT_BOX_MARGIN_BOTTOM = 5
+
+LABEL_WIDTH = 125
+LABEL_HEIGHT = 15
 
 class OutputTileForm():
 
@@ -57,7 +60,22 @@ class OutputTileForm():
         self.valid = {IDENTIFIER_TEXT_BOX: False, CHAR_TEXT_BOX: False, COLOR_TEXT_BOX: False}
         self.validators = {IDENTIFIER_TEXT_BOX: VALID_IDENTIFIER_REGEX, CHAR_TEXT_BOX: VALID_CHAR_REGEX, COLOR_TEXT_BOX: VALID_COLOR_REGEX}
         self.text = {IDENTIFIER_TEXT_BOX: '', CHAR_TEXT_BOX: '', COLOR_TEXT_BOX: ''}
+        self.labels = self.create_labels()
         
+    def create_labels(self):
+        labels = {IDENTIFIER_TEXT_BOX: pygame.Surface((LABEL_WIDTH, LABEL_HEIGHT)),
+                       CHAR_TEXT_BOX: pygame.Surface((LABEL_WIDTH, LABEL_HEIGHT)),
+                       COLOR_TEXT_BOX: pygame.Surface((LABEL_WIDTH, LABEL_HEIGHT))}
+
+        for label in labels.values():
+            label.fill((50,50,50))
+
+        labels[IDENTIFIER_TEXT_BOX].blit(self.font.render('Identifier: ', 1, (255, 255, 255)), (0, 0))
+        labels[CHAR_TEXT_BOX].blit(self.font.render('Character: ', 1, (255, 255, 255)), (0, 0))
+        labels[COLOR_TEXT_BOX].blit(self.font.render('Color (R,G,B): ', 1, (255, 255, 255)), (0, 0))
+
+        return labels
+
     def process_event(self, event):
         '''
             Returns true if we should close the form otherwise returns false
@@ -124,14 +142,17 @@ class OutputTileForm():
 
     def text_box_rect(self, text_box):
         if text_box == IDENTIFIER_TEXT_BOX:
-            return (OUTPUT_TILE_FORM_PADDING_LEFT, OUTPUT_TILE_FORM_PADDING_TOP, IDENTIFIER_TEXT_BOX_WIDTH, IDENTIFIER_TEXT_BOX_HEIGHT)
+            return (OUTPUT_TILE_FORM_PADDING_LEFT + LABEL_WIDTH, OUTPUT_TILE_FORM_PADDING_TOP, IDENTIFIER_TEXT_BOX_WIDTH, IDENTIFIER_TEXT_BOX_HEIGHT)
         elif text_box == CHAR_TEXT_BOX:
-            return (OUTPUT_TILE_FORM_PADDING_LEFT, OUTPUT_TILE_FORM_PADDING_TOP + IDENTIFIER_TEXT_BOX_HEIGHT + TEXT_BOX_MARGIN_BOTTOM, CHAR_TEXT_BOX_WIDTH, CHAR_TEXT_BOX_HEIGHT)
+            return (OUTPUT_TILE_FORM_PADDING_LEFT + LABEL_WIDTH, OUTPUT_TILE_FORM_PADDING_TOP + IDENTIFIER_TEXT_BOX_HEIGHT + TEXT_BOX_MARGIN_BOTTOM, CHAR_TEXT_BOX_WIDTH, CHAR_TEXT_BOX_HEIGHT)
         elif text_box == COLOR_TEXT_BOX:
-            return (OUTPUT_TILE_FORM_PADDING_LEFT, OUTPUT_TILE_FORM_PADDING_TOP + IDENTIFIER_TEXT_BOX_HEIGHT + CHAR_TEXT_BOX_HEIGHT + 2 * TEXT_BOX_MARGIN_BOTTOM, COLOR_TEXT_BOX_WIDTH, COLOR_TEXT_BOX_HEIGHT)
+            return (OUTPUT_TILE_FORM_PADDING_LEFT + LABEL_WIDTH, OUTPUT_TILE_FORM_PADDING_TOP + IDENTIFIER_TEXT_BOX_HEIGHT + CHAR_TEXT_BOX_HEIGHT + 2 * TEXT_BOX_MARGIN_BOTTOM, COLOR_TEXT_BOX_WIDTH, COLOR_TEXT_BOX_HEIGHT)
+
+    def label_rect(self, text_box_rect):
+        return (text_box_rect[0] - LABEL_WIDTH, text_box_rect[1], LABEL_WIDTH, LABEL_HEIGHT)
 
     def render(self):
-        self.surface.fill((0,0,0))
+        self.surface.fill((50,50,50))
 
         for text_box, surface in self.text_boxes.iteritems():
             if text_box == self.selected_text_box:
@@ -147,6 +168,9 @@ class OutputTileForm():
 
             rect = self.text_box_rect(text_box)
             self.surface.blit(surface, (rect[0], rect[1]))
+
+            label_rect = self.label_rect(rect)
+            self.surface.blit(self.labels[text_box], (label_rect[0], label_rect[1]))
 
             self.validate(text_box, self.text[text_box])
             if not self.valid[text_box]:

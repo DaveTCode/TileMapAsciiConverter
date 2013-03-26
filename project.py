@@ -92,8 +92,14 @@ def save(project_dir, project):
             for id in project.id_to_output_tile_mapping:
                 mappings_file.write("{0},{1}\n".format(id, project.id_to_output_tile_mapping[id].identifier))
 
+    def _save_identifier_map():
+        with open(os.path.join(project_dir, "identifier_map.txt"), "w") as map_file:
+            for row in project.id_map:
+                map_file.write(",".join(map(lambda id: project.get_tile_by_id(id).identifier if project.get_tile_by_id(id) else "", row)) + "\n")
+
     _save_output_tiles()
     _save_output_tile_id_mappings()
+    _save_identifier_map()
 
 def load(project_dir):
     def _load_project_file():

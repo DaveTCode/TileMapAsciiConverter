@@ -27,3 +27,7 @@ Edit:
 Help
 =====================
 Help text is displayed in the command line when running in edit mode until a better solution presents itself.
+
+Example
+=====================
+![Example image](example.png "Example - Pokemon (Kanto - Route1)")
